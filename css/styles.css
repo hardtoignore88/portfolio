@@ -221,7 +221,10 @@ a { color: inherit; }
     linear-gradient(135deg, #1fb36a, #16a86a);
 }
 .case__media:has(img) { aspect-ratio: auto; background: none; }
-.case__media img { width: 100%; height: auto; }
+.case__media img { width: 100%; height: auto; transition: transform .5s ease; }
+@media (hover: hover) {
+  .case__inner:hover .case__media img { transform: scale(1.06); }
+}
 
 .case__text h2 { font-size: clamp(1.4rem, 2.4vw, 1.65rem); font-weight: 600; }
 .case__text p { max-width: 38ch; margin: 12px 0 22px; font-size: .78rem; line-height: 2; color: var(--muted); }
@@ -314,7 +317,8 @@ a { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn, .project-card__media img { transition: none; }
-  .project-card:hover .project-card__media img { transform: none; }
+  .btn, .project-card__media img, .case__media img { transition: none; }
+  .project-card:hover .project-card__media img,
+  .case__inner:hover .case__media img { transform: none; }
   .btn:hover { transform: none; }
 }
