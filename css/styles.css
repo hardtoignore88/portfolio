@@ -230,7 +230,7 @@ a { color: inherit; }
   border-radius: 36px;
 }
 .clients__grid li { display: flex; justify-content: center; text-align: center; }
-.clients__grid img { max-height: 40px; width: auto; }
+.clients__grid img { width: auto; max-width: 100%; height: auto; max-height: 56px; }
 
 .logo { font-size: .8rem; font-weight: 500; color: #222; line-height: 1.2; }
 .logo--bold { font-family: var(--font-head); font-size: .95rem; font-weight: 700; }
