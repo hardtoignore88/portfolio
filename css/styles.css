@@ -333,7 +333,6 @@ a { color: inherit; }
 .breadcrumb li + li::before { content: ">"; margin: 0 .4em; }
 .breadcrumb a { text-decoration: none; }
 .breadcrumb a:hover { text-decoration: underline; }
-.breadcrumb--above-banner { margin-bottom: 28px; }
 
 .project__hero { margin: 40px 0 0; }
 .project__hero img { width: 100%; height: auto; }
@@ -424,7 +423,9 @@ a { color: inherit; }
 .page-banner h1 { font-size: clamp(1.7rem, 3vw, 2.1rem); font-weight: 700; }
 .page-banner p { margin: 6px 0 0; font-size: clamp(1rem, 1.6vw, 1.15rem); color: var(--ink); }
 
+.studies { padding-top: 0; }
 .studies__grid {
+  margin-top: 40px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 32px;
