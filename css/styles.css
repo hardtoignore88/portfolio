@@ -230,19 +230,40 @@ a { color: inherit; }
 .case__text p { max-width: 38ch; margin: 12px 0 22px; font-size: .78rem; line-height: 2; color: var(--muted); }
 
 /* ---------- Clients ---------- */
-.clients__grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  align-items: center;
-  gap: 36px 24px;
-  margin: 0;
-  padding: 36px clamp(16px, 3vw, 32px);
-  list-style: none;
+.clients__panel {
+  padding: 40px clamp(12px, 2vw, 24px);
   background: var(--card-bg);
   border-radius: 36px;
 }
-.clients__grid li { display: flex; justify-content: center; text-align: center; }
-.clients__grid img { max-width: 100%; object-fit: contain; }
+
+.clients__viewport {
+  overflow: hidden;
+  /* Fade the logos out at each end */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.clients__track {
+  display: flex;
+  width: max-content;
+  animation: clients-scroll 40s linear infinite;
+}
+.clients__panel:hover .clients__track { animation-play-state: paused; }
+
+.clients__list {
+  display: flex;
+  align-items: center;
+  gap: 72px;
+  margin: 0;
+  padding: 0 72px 0 0; /* matches the gap so the loop seam is even */
+  list-style: none;
+}
+.clients__list li { flex: none; }
+.clients__list img { display: block; object-fit: contain; }
+
+@keyframes clients-scroll {
+  to { transform: translateX(-50%); }
+}
 
 /* ---------- Footer ---------- */
 .footer { background: var(--orange); color: var(--ink); }
@@ -282,7 +303,6 @@ a { color: inherit; }
 @media (max-width: 1024px) {
   .services__grid { grid-template-columns: repeat(2, 1fr); }
   .glance__grid { gap: 20px; }
-  .clients__grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 860px) {
@@ -306,7 +326,10 @@ a { color: inherit; }
   .project-card__body p { font-size: .8rem; }
   .case__text p { font-size: .85rem; line-height: 1.8; }
 
-  .clients__grid { grid-template-columns: repeat(2, 1fr); border-radius: var(--radius-lg); }
+  .clients__panel { padding-block: 28px; border-radius: var(--radius-lg); }
+  .clients__viewport { -webkit-mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent); }
+  .clients__list { gap: 48px; padding-right: 48px; }
+  .clients__track { animation-duration: 30s; }
 
   .footer__inner { flex-direction: column; text-align: center; }
   .footer .btn-row { justify-content: center; }
@@ -317,6 +340,11 @@ a { color: inherit; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* No scrolling: show every logo in a wrapped, centred block instead */
+  .clients__viewport { -webkit-mask-image: none; mask-image: none; }
+  .clients__track { width: auto; animation: none; }
+  .clients__list { flex-wrap: wrap; justify-content: center; row-gap: 32px; padding: 0; }
+  .clients__list[aria-hidden] { display: none; }
   .btn, .project-card__media img, .case__media img { transition: none; }
   .project-card:hover .project-card__media img,
   .case__inner:hover .case__media img { transform: none; }
