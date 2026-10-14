@@ -333,6 +333,7 @@ a { color: inherit; }
 .breadcrumb li + li::before { content: ">"; margin: 0 .4em; }
 .breadcrumb a { text-decoration: none; }
 .breadcrumb a:hover { text-decoration: underline; }
+.breadcrumb--above-banner { margin-bottom: 28px; }
 
 .project__hero { margin: 40px 0 0; }
 .project__hero img { width: 100%; height: auto; }
