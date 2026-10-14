@@ -14,8 +14,8 @@
   --radius-lg: 22px;
   --container: 1100px;
   --gutter: clamp(16px, 4vw, 32px);
-  --font-head: "Outfit", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-head: "Google Sans", system-ui, sans-serif;
+  --font-body: "Google Sans", system-ui, sans-serif;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
