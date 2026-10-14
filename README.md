@@ -20,5 +20,5 @@ The page shows coloured placeholders until these files exist:
 Client logos are text placeholders in `index.html` — swap each `<span class="logo">` for an
 `<img src="images/logos/…" alt="…">`.
 
-Also update the `mailto:` address on the "Get in touch" buttons, the LinkedIn URL, and the
+Also update the
 "Find out more" links once those pages exist.
