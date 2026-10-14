@@ -14,7 +14,6 @@ The page shows coloured placeholders until these files exist:
 | `images/salty-dog.png` | "Branding & Website Design" card |
 | `images/optical-express.png` | "A little bit of everything…" card |
 | `images/ux-case-studies.png` | UX Design Case Studies panel |
-| `cv/steven-gladman-cv.pdf` | "Download CV" buttons |
 
 Client logos are text placeholders in `index.html` — swap each `<span class="logo">` for an
 `<img src="images/logos/…" alt="…">`.
