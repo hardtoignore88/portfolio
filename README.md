@@ -10,7 +10,6 @@ The page shows coloured placeholders until these files exist:
 
 | File | Used for |
 | --- | --- |
-| `images/steven.jpg` | Hero profile photo (square, shown in grayscale) |
 | `images/uk-debt-expert.jpg` | "Digital Campaigns & Content" card |
 | `images/salty-dog.jpg` | "Branding & Website Design" card |
 | `images/optical-express.jpg` | "A little bit of everything…" card |
