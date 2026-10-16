@@ -412,7 +412,7 @@ a { color: inherit; }
   line-height: 1.2;
   color: var(--ink);
 }
-.project__categories img { flex: none; width: 35px; height: 35px; }
+.project__categories img { flex: none; width: 35px; height: 35px; object-fit: contain; }
 
 .project__pager {
   display: flex;
