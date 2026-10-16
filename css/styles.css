@@ -394,6 +394,26 @@ a { color: inherit; }
 .project__overlap img:first-child { top: 0; left: 0; width: 83%; }
 .project__overlap img:last-child { top: 54.8%; right: 0; width: 62%; }
 
+.project__categories {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px 24px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.project__categories li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-head);
+  font-size: .95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.project__categories img { flex: none; width: 35px; height: 35px; }
+
 .project__pager {
   display: flex;
   flex-wrap: wrap;
