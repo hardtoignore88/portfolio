@@ -394,6 +394,14 @@ a { color: inherit; }
 .project__overlap img:first-child { top: 0; left: 0; width: 83%; }
 .project__overlap img:last-child { top: 54.8%; right: 0; width: 62%; }
 
+.project__pager {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-top: clamp(48px, 7vw, 64px);
+}
+
 .project__more {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
@@ -512,6 +520,7 @@ a { color: inherit; }
 @media (max-width: 380px) {
   .btn-row { flex-direction: column; align-items: stretch; }
   .site-header .btn-row { flex-direction: row; }
+  .project__pager { flex-direction: column; align-items: stretch; }
 }
 
 @media (prefers-reduced-motion: reduce) {
