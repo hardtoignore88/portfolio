@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Absolutely Scunnered | Leave It On Read</title>
+  <meta name="description" content="Play Leave It On Read, a free swipe game starring Jamie from Absolutely Scunnered, the cartoon by Steven Gladman.">
+  <meta name="theme-color" content="#009BD6">
+  <meta property="og:title" content="Leave It On Read: an Absolutely Scunnered game">
+  <meta property="og:description" content="Jamie's phone won't stop. Reply to the ones that matter, leave the rest on read.">
+  <meta property="og:image" content="https://stevengladman.co.uk/games/leave-it-on-read/icons/icon-512.png">
+  <link rel="icon" href="../games/leave-it-on-read/icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="../games/leave-it-on-read/icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+  <style>
+    /* Same world as the game's start screen: title-card blue, white rounded lettering,
+       Jamie front and centre. Hero, then how to play, then install, then back to the portfolio. */
+    :root {
+      --sky: #009BD6;
+      --sky-deep: #0079AE;
+      --sky-night: #00577D;
+      --ink: #10263A;
+      --paper: #FFFFFF;
+      --mist: #EAF8FF;
+      --teal: #56BBB3;
+      --hair: #9A4241;
+      --muted: #5E7487;
+      --ok: #1F9D6B;
+      --warn: #FFE3A3;
+      --font-display: "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+      --font-text: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: radial-gradient(120% 70% at 50% 18%, #12B4F0 0%, var(--sky) 40%, var(--sky-deep) 100%) var(--sky);
+      background-attachment: fixed;
+      color: var(--paper);
+      font-family: var(--font-text);
+      -webkit-tap-highlight-color: transparent;
+    }
+    img { max-width: 100%; }
+    a { color: inherit; }
+    a:focus-visible, button:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; border-radius: 8px; }
+
+    .skyline { position: fixed; inset: auto 0 0 0; width: 100%; height: 34vh; opacity: .12; pointer-events: none; z-index: 0; }
+    .wrap {
+      position: relative; z-index: 1;
+      max-width: 980px; margin: 0 auto;
+      padding-left: max(20px, env(safe-area-inset-left, 0px));
+      padding-right: max(20px, env(safe-area-inset-right, 0px));
+    }
+
+    /* ---------- Top bar ---------- */
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: max(16px, env(safe-area-inset-top, 0px)); font-size: 14px; }
+    .topbar a { text-decoration: none; font-weight: 600; opacity: .9; }
+    .topbar a:hover { opacity: 1; text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ---------- Hero ---------- */
+    .hero { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; padding-block: 28px 56px; }
+    .hero__logo { width: min(80%, 420px); height: auto; }
+    .hero__game {
+      margin: 6px 0 0; font-family: var(--font-display); font-weight: 800; line-height: 1;
+      font-size: clamp(34px, 8vw, 56px); text-shadow: 0 3px 0 rgba(0, 60, 100, .35); text-wrap: balance;
+    }
+    .hero__fig { position: relative; height: clamp(260px, 46vh, 440px); margin-top: 8px; }
+    .hero__body { display: block; height: 100%; width: auto; }
+    .hero__blink { position: absolute; left: 31.538%; top: 10.665%; width: 43.654%; height: auto; opacity: 0; pointer-events: none; }
+    .hero__blink.is-on { opacity: 1; }
+    .hero__phone {
+      position: absolute; left: 74%; top: 2%; white-space: nowrap;
+      background: var(--paper); color: var(--ink); border-radius: 16px 16px 16px 4px;
+      padding: 6px 12px; font-size: 15px; font-weight: 600;
+      box-shadow: 0 6px 18px rgba(0, 40, 70, .25); animation: buzz 2.4s ease-in-out infinite;
+    }
+    .hero__lead { margin: 6px 0 0; max-width: 36ch; font-size: 18px; line-height: 1.5; color: var(--mist); text-wrap: pretty; }
+    .hero__lead b { color: var(--paper); }
+    .btn-play {
+      display: inline-block; text-decoration: none; margin-top: 8px;
+      border-radius: 999px; background: var(--paper); color: var(--sky-deep);
+      font-family: var(--font-display); font-size: 28px; font-weight: 800; padding: 12px 52px 9px;
+      box-shadow: 0 6px 0 var(--sky-night), 0 12px 28px rgba(0, 40, 70, .3);
+      transition: transform .08s ease, box-shadow .08s ease;
+    }
+    .btn-play:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--sky-night), 0 16px 32px rgba(0, 40, 70, .3); }
+    .btn-play:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--sky-night), 0 4px 12px rgba(0, 40, 70, .3); }
+    .hero__small { margin: 4px 0 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
+
+    /* ---------- Sections ---------- */
+    .section { padding-block: 40px; }
+    .section__title {
+      margin: 0 0 22px; text-align: center; font-family: var(--font-display); font-weight: 800;
+      font-size: clamp(28px, 6vw, 40px); line-height: 1.05; text-shadow: 0 3px 0 rgba(0, 60, 100, .3); text-wrap: balance;
+    }
+    .steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+    .step { background: var(--paper); color: var(--ink); border-radius: 24px; padding: 20px; box-shadow: 0 14px 30px rgba(0, 40, 70, .22); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .step h3 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 22px; line-height: 1.1; color: var(--sky-deep); }
+    .step p { margin: 0; font-size: 15px; line-height: 1.5; color: #33495C; }
+
+    /* mini message card inside a step */
+    .mini { position: relative; border: 1px solid #E1EAF0; border-radius: 16px; padding: 12px 12px 12px 58px; min-height: 64px; background: #F7FBFD; }
+    .mini__av { position: absolute; left: 12px; top: 12px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; color: var(--paper); font-family: var(--font-display); font-weight: 800; padding-top: 2px; }
+    .mini__name { font-weight: 700; font-size: 14px; }
+    .mini__text { font-size: 14px; color: #33495C; }
+    .mini__stamp {
+      position: absolute; right: 10px; top: -10px; padding: 2px 8px 0; border: 2px solid; border-radius: 8px; background: var(--paper);
+      font-family: var(--font-display); font-weight: 800; font-size: 14px; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .mini__stamp--reply { color: var(--ok); transform: rotate(-6deg); }
+    .mini__stamp--read { color: var(--muted); transform: rotate(6deg); }
+
+    .faces { display: flex; justify-content: space-between; align-items: flex-end; gap: 4px; }
+    .faces img { width: 19%; height: auto; }
+    .meter { height: 10px; border-radius: 999px; background: linear-gradient(90deg, var(--teal), #F2C14E 55%, #E0623F 80%, var(--hair)); }
+
+    .install { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; background: rgba(0, 50, 85, .3); border-radius: 28px; padding: 24px; }
+    .install__icon { width: 112px; height: 112px; border-radius: 26px; box-shadow: 0 10px 24px rgba(0, 30, 60, .3); }
+    .install h2 { margin: 0 0 6px; font-family: var(--font-display); font-weight: 800; font-size: clamp(24px, 5vw, 32px); line-height: 1.1; }
+    .install p { margin: 0 0 12px; color: var(--mist); line-height: 1.5; }
+    .install ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+    .install li { line-height: 1.45; }
+    .install li b { font-family: var(--font-display); font-weight: 800; letter-spacing: .02em; }
+
+    .cta { display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding-block: 24px 40px; }
+
+    .footer { border-top: 1px solid rgba(255, 255, 255, .25); padding-block: 22px max(28px, env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 20px; font-size: 14px; }
+    .footer p { margin: 0; opacity: .85; }
+    .footer a { font-weight: 600; }
+
+    @keyframes buzz { 0%, 70%, 100% { transform: none; } 74% { transform: rotate(-5deg); } 78% { transform: rotate(5deg); } 82% { transform: rotate(-4deg); } 86% { transform: rotate(3deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; } html { scroll-behavior: auto; } }
+    @media (max-width: 760px) {
+      .steps { grid-template-columns: minmax(0, 1fr); }
+      .install { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; }
+      .install ul { justify-items: center; }
+      .hero__phone { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <svg class="skyline" viewBox="0 0 400 140" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+    <path fill="#FFFFFF" d="M0 140V96h18V80h14v16h10V60h20v80zM70 140V88c10-22 34-22 44 0v52zM120 140V70h8V52h6v18h8v70zM150 140V92h30V74h22v66zM210 140V40h6V22h4v18h6v100zM234 140V84h40v56zM280 140V64h12l6-16 6 16h12v76zM324 140V90c8-14 28-14 36 0v50zM366 140V76h34v64z"/>
+  </svg>
+
+  <div class="wrap">
+    <nav class="topbar" aria-label="Site">
+      <a href="/">← Steven Gladman</a>
+    </nav>
+
+    <header class="hero">
+      <img class="hero__logo" src="../games/leave-it-on-read/img/logo.png" width="689" height="300" alt="Absolutely Scunnered, created by Steven Gladman">
+      <h1 class="hero__game">Leave It On Read</h1>
+      <div class="hero__fig">
+        <img class="hero__body" src="../games/leave-it-on-read/img/front.png" width="520" height="1519" alt="Jamie, the star of Absolutely Scunnered, standing with a flat, unimpressed look">
+        <img class="hero__blink" id="blink" src="../games/leave-it-on-read/img/front-blink.png" width="227" height="112" alt="" aria-hidden="true">
+        <span class="hero__phone" aria-hidden="true">u up? 👀</span>
+      </div>
+      <p class="hero__lead">Jamie’s phone won’t stop. <b>Reply to the ones that matter</b>, leave the rest on read, and try to stop him getting absolutely scunnered.</p>
+      <a class="btn-play" href="../games/leave-it-on-read/">Play now</a>
+      <p class="hero__small">Free · Plays in your browser · Best on a phone</p>
+    </header>
+
+    <section class="section" aria-labelledby="how">
+      <h2 class="section__title" id="how">How to play</h2>
+      <div class="steps">
+        <article class="step">
+          <h3>Swipe right to reply</h3>
+          <div class="mini">
+            <span class="mini__av" style="background:#D9577A">M</span>
+            <div class="mini__name">Mum</div>
+            <div class="mini__text">Did you get home OK?</div>
+            <span class="mini__stamp mini__stamp--reply">Reply</span>
+          </div>
+          <p>Mum, Gran, work, the courier at the door. Some messages need an answer, and fast.</p>
+        </article>
+        <article class="step">
+          <h3>Swipe left to leave it on read</h3>
+          <div class="mini">
+            <span class="mini__av" style="background:#9AA7B3">?</span>
+            <div class="mini__name">+44 7700 900461</div>
+            <div class="mini__text">u up?</div>
+            <span class="mini__stamp mini__stamp--read">Read</span>
+          </div>
+          <p>Scam texts, the lads’ group chat, Uncle Davie’s chain messages. Ignore them.</p>
+        </article>
+        <article class="step">
+          <h3>Watch the scunner meter</h3>
+          <div class="faces" aria-hidden="true">
+            <img src="../games/leave-it-on-read/img/unimpressed.png" width="360" height="476" alt="">
+            <img src="../games/leave-it-on-read/img/sideeye.png" width="360" height="476" alt="">
+            <img src="../games/leave-it-on-read/img/eyeroll.png" width="360" height="476" alt="">
+            <img src="../games/leave-it-on-read/img/sceptical.png" width="360" height="476" alt="">
+            <img src="../games/leave-it-on-read/img/angry.png" width="346" height="479" alt="">
+          </div>
+          <div class="meter" aria-hidden="true"></div>
+          <p>Wrong calls and slow thumbs wind Jamie up. Fill the meter and he loses it.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" aria-label="Install on your phone">
+      <div class="install">
+        <img class="install__icon" src="../games/leave-it-on-read/icons/icon-512.png" width="512" height="512" alt="Leave It On Read app icon showing Jamie">
+        <div>
+          <h2>Put Jamie on your home screen</h2>
+          <p>Install it like an app. It opens full screen and works offline after the first play.</p>
+          <ul>
+            <li><b>Android:</b> open the game in Chrome, tap ⋮, then Install app.</li>
+            <li><b>iPhone:</b> open the game in Safari, tap Share, then Add to Home Screen.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <div class="cta">
+      <a class="btn-play" href="../games/leave-it-on-read/">Play now</a>
+    </div>
+
+    <footer class="footer">
+      <p>Absolutely Scunnered · Created by Steven Gladman</p>
+      <a href="/">Back to the portfolio</a>
+    </footer>
+  </div>
+
+  <script>
+    // Jamie blinks every few seconds, now and then twice.
+    (() => {
+      const el = document.getElementById('blink');
+      const calm = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const once = (then) => {
+        el.classList.add('is-on');
+        setTimeout(() => { el.classList.remove('is-on'); if (then) setTimeout(then, 140); }, 120);
+      };
+      (function loop() {
+        setTimeout(() => {
+          if (!calm.matches && !document.hidden) once(Math.random() < 0.25 ? () => once() : null);
+          loop();
+        }, 2200 + Math.random() * 3800);
+      })();
+    })();
+  </script>
+</body>
+</html>
