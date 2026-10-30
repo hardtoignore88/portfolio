@@ -89,7 +89,14 @@
 
   /* ---------- Game HUD ---------- */
   .game { gap: 10px; }
-  .hud { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 12px; }
+  .hud { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 4px 12px; }
+  .hud__sound {
+    width: 40px; height: 40px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+    background: rgba(0, 50, 85, .35); color: var(--paper);
+  }
+  .hud__sound svg { width: 22px; height: 22px; }
+  .hud__sound .is-off, .hud__sound[aria-pressed="true"] .is-on { display: none; }
+  .hud__sound[aria-pressed="true"] .is-off { display: block; }
   .hud__score { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 60, 100, .35); }
   .hud__streak { font-size: 15px; font-weight: 800; background: var(--paper); color: var(--sky-deep); border-radius: 999px; padding: 2px 10px 0; transition: transform .15s ease; }
   .hud__streak[data-on="0"] { opacity: 0; }
@@ -228,6 +235,10 @@
     <div class="hud">
       <div class="hud__score" id="score" aria-live="polite">0</div>
       <div class="hud__streak" id="streak" data-on="0">x1</div>
+      <button class="hud__sound" id="soundBtn" type="button" aria-pressed="false" aria-label="Mute sound">
+        <svg class="is-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <svg class="is-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M17 9l5 6M22 9l-5 6"/></svg>
+      </button>
       <div class="meter" id="meter">
         <div class="meter__label"><span>Scunner meter</span><span id="meterPct">0%</span></div>
         <div class="meter__track" role="meter" aria-label="Scunner meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meterTrack">
@@ -349,6 +360,93 @@
     set(v) { try { localStorage.setItem('lior-best', String(v)); } catch (e) { /* storage unavailable */ } },
   };
 
+  // ---------- Sound ----------
+  // Everything is synthesised with Web Audio, so there are no files to load.
+  const sfx = (() => {
+    let ctx = null;
+    let muted = false;
+    try { muted = localStorage.getItem('lior-muted') === '1'; } catch (e) { /* storage unavailable */ }
+
+    function ac() {
+      if (muted) return null;
+      try {
+        if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === 'suspended') ctx.resume();
+      } catch (e) { return null; }
+      return ctx;
+    }
+    // One enveloped oscillator. f0 -> f1 pitch slide over the note.
+    function tone(c, { type = 'sine', f0, f1 = f0, at = 0, dur, vol, filter }) {
+      const t = c.currentTime + at;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(f0, t);
+      if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      let out = o;
+      if (filter) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = filter; o.connect(f); out = f; }
+      out.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+      return o;
+    }
+    // Phone-on-a-table rattle: a low buzz chopped by a fast LFO.
+    function rattle(c, at, dur) {
+      const t = c.currentTime + at;
+      const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain(), f = c.createBiquadFilter();
+      o.type = 'sawtooth'; o.frequency.value = 155;
+      lfo.type = 'square'; lfo.frequency.value = 38;
+      lg.gain.value = 0.5;
+      f.type = 'lowpass'; f.frequency.value = 700;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.09, t + 0.015);
+      g.gain.setValueAtTime(0.09, t + dur - 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      lfo.connect(lg); lg.connect(g.gain);
+      o.connect(f); f.connect(g); g.connect(c.destination);
+      o.start(t); lfo.start(t); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02);
+    }
+    function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) { /* no vibration */ } }
+
+    return {
+      unlock() { ac(); },
+      get muted() { return muted; },
+      setMuted(v) {
+        muted = v;
+        try { localStorage.setItem('lior-muted', v ? '1' : '0'); } catch (e) { /* storage unavailable */ }
+        if (v && ctx) ctx.suspend();
+      },
+      buzz() {
+        if (!muted) vibrate([70, 60, 70]);
+        const c = ac(); if (!c) return;
+        rattle(c, 0, 0.13); rattle(c, 0.2, 0.13);
+      },
+      right() {
+        const c = ac(); if (!c) return;
+        tone(c, { type: 'triangle', f0: 880, at: 0, dur: 0.12, vol: 0.18 });
+        tone(c, { type: 'triangle', f0: 1318.5, at: 0.07, dur: 0.18, vol: 0.16 });
+      },
+      streak() {
+        const c = ac(); if (!c) return;
+        [1046.5, 1318.5, 1568, 2093].forEach((f, i) => tone(c, { type: 'triangle', f0: f, at: 0.16 + i * 0.06, dur: 0.16, vol: 0.12 }));
+      },
+      wrong() {
+        if (!muted) vibrate(160);
+        const c = ac(); if (!c) return;
+        tone(c, { type: 'square', f0: 240, f1: 110, dur: 0.32, vol: 0.12, filter: 1200 });
+        tone(c, { type: 'square', f0: 233, f1: 104, dur: 0.32, vol: 0.08, filter: 1200 });
+      },
+      over() {
+        if (!muted) vibrate([120, 80, 300]);
+        const c = ac(); if (!c) return;
+        tone(c, { type: 'sawtooth', f0: 392, f1: 196, at: 0, dur: 0.28, vol: 0.1, filter: 1600 });
+        tone(c, { type: 'sawtooth', f0: 330, f1: 165, at: 0.26, dur: 0.28, vol: 0.1, filter: 1600 });
+        tone(c, { type: 'sawtooth', f0: 262, f1: 70, at: 0.52, dur: 0.75, vol: 0.12, filter: 1400 });
+      },
+    };
+  })();
+
   let S = null;          // game state
   let card = null;       // current card element + data
   let raf = 0, faceTimer = 0, bubbleTimer = 0, toastTimer = 0;
@@ -408,7 +506,6 @@
   }
   function jolt() {
     el.jamie.classList.remove('is-jolt'); void el.jamie.offsetWidth; el.jamie.classList.add('is-jolt');
-    try { navigator.vibrate && navigator.vibrate(60); } catch (e) { /* no vibration */ }
   }
 
   // ---------- HUD ----------
@@ -449,6 +546,7 @@
     node.querySelector('.card__name').textContent = who.name;
     node.querySelector('.card__text').textContent = msg.text;
     el.deck.appendChild(node);
+    sfx.buzz();
     const dur = Math.max(T_MIN, T_START - S.handled * T_STEP) * 1000;
     card = { node, msg, dur, start: performance.now(), done: false, dx: 0 };
     bindDrag(card);
@@ -499,17 +597,20 @@
       faceTimer = setTimeout(() => { if (S.on) { flashFace('shocked', 650); jolt(); } }, 600);
       toast(msg.ans === 'reply' ? `Too slow. ${msg.bad}` : 'Too slow. Jamie nodded off.', true);
       S.lastBad = msg.ans === 'reply' ? msg.bad : 'Jamie fell asleep holding his phone.';
+      sfx.wrong();
     } else if (choice === msg.ans) {
       S.streak++;
       S.score += 10 * mult();
+      sfx.right();
       S.meter -= CALM;
       if (choice === 'reply') say(msg.say, 'sent');
       else { say(SHRUGS[Math.floor(Math.random() * SHRUGS.length)]); if (Math.random() < .35) flashFace('blank', 500); }
-      if (S.streak > 0 && S.streak % 5 === 0 && mult() > 1) { toast(`Streak! Points x${mult()}`, false); flashFace('ooh', 600); }
+      if (S.streak > 0 && S.streak % 5 === 0 && mult() > 1) { toast(`Streak! Points x${mult()}`, false); flashFace('ooh', 600); sfx.streak(); }
     } else {
       S.meter += HIT_WRONG; S.streak = 0;
       flashFace('shocked', 750); jolt();
       toast(msg.bad, true);
+      sfx.wrong();
       S.lastBad = msg.bad;
       if (choice === 'reply') say('…', 'sent');
     }
@@ -577,6 +678,7 @@
 
   function gameOver() {
     S.on = false;
+    sfx.over();
     cancelAnimationFrame(raf);
     const best = store.get();
     const isNew = S.score > best;
@@ -589,7 +691,14 @@
     show('over');
   }
 
-  $('playBtn').addEventListener('click', start);
+  $('playBtn').addEventListener('click', () => { sfx.unlock(); start(); });
+  const soundBtn = $('soundBtn');
+  const syncSound = () => {
+    soundBtn.setAttribute('aria-pressed', String(sfx.muted));
+    soundBtn.setAttribute('aria-label', sfx.muted ? 'Turn sound on' : 'Mute sound');
+  };
+  soundBtn.addEventListener('click', () => { sfx.setMuted(!sfx.muted); if (!sfx.muted) sfx.right(); syncSound(); });
+  syncSound();
   $('againBtn').addEventListener('click', start);
   $('btnRead').addEventListener('click', () => resolve('read'));
   $('btnReply').addEventListener('click', () => resolve('reply'));
