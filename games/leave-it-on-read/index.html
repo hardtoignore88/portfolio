@@ -183,7 +183,8 @@
   /* ---------- Game over ---------- */
   .over { align-items: center; justify-content: center; text-align: center; gap: 14px; }
   .over__face { height: 26vh; max-height: 200px; width: auto; animation: rant .5s ease-in-out infinite alternate; }
-  .over__title { margin: 0; font-size: clamp(32px, 10vw, 44px); line-height: .95; font-weight: 800; text-shadow: 0 3px 0 rgba(0, 60, 100, .35); text-wrap: balance; }
+  .over__title { margin: 0; line-height: 0; }
+  .over__title img { width: min(82%, 330px); height: auto; }
   .over__why { margin: 0; max-width: 32ch; font-family: var(--font-text); font-size: 15px; line-height: 1.45; color: #FFE3A3; font-weight: 600; text-wrap: balance; }
   .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 360px; margin: 6px 0; }
   .stat { background: rgba(0, 50, 85, .3); border-radius: 16px; padding: 10px 6px 8px; }
@@ -267,7 +268,7 @@
   <!-- Game over -->
   <section class="screen over" id="over" hidden>
     <img class="over__face" src="img/angry.png" width="346" height="479" alt="Jamie, mid angry rant">
-    <h2 class="over__title">Absolutely scunnered.</h2>
+    <h2 class="over__title"><img src="img/logo-wordmark.png" width="689" height="157" alt="Absolutely Scunnered"></h2>
     <p class="over__why" id="overWhy"></p>
     <div class="stats">
       <div class="stat"><b id="stScore">0</b><span>Score</span></div>
@@ -391,20 +392,22 @@
       o.start(t); o.stop(t + dur + 0.02);
       return o;
     }
-    // Phone-on-a-table rattle: a low buzz chopped by a fast LFO.
+    // Light phone-on-vibrate hum: a thin, quiet buzz (no bass) chopped by a fast flutter.
     function rattle(c, at, dur) {
       const t = c.currentTime + at;
-      const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain(), f = c.createBiquadFilter();
-      o.type = 'sawtooth'; o.frequency.value = 155;
-      lfo.type = 'square'; lfo.frequency.value = 38;
-      lg.gain.value = 0.5;
-      f.type = 'lowpass'; f.frequency.value = 700;
+      const o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+      const hp = c.createBiquadFilter(), lp = c.createBiquadFilter();
+      o.type = 'square'; o.frequency.value = 310;
+      lfo.type = 'sine'; lfo.frequency.value = 55;
+      lg.gain.value = 0.012;
+      hp.type = 'highpass'; hp.frequency.value = 600;
+      lp.type = 'lowpass'; lp.frequency.value = 2400;
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.09, t + 0.015);
-      g.gain.setValueAtTime(0.09, t + dur - 0.03);
+      g.gain.exponentialRampToValueAtTime(0.025, t + 0.02);
+      g.gain.setValueAtTime(0.025, t + dur - 0.03);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       lfo.connect(lg); lg.connect(g.gain);
-      o.connect(f); f.connect(g); g.connect(c.destination);
+      o.connect(hp); hp.connect(lp); lp.connect(g); g.connect(c.destination);
       o.start(t); lfo.start(t); o.stop(t + dur + 0.02); lfo.stop(t + dur + 0.02);
     }
     function vibrate(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) { /* no vibration */ } }
@@ -418,9 +421,9 @@
         if (v && ctx) ctx.suspend();
       },
       buzz() {
-        if (!muted) vibrate([70, 60, 70]);
+        if (!muted) vibrate([35, 60, 35]);
         const c = ac(); if (!c) return;
-        rattle(c, 0, 0.13); rattle(c, 0.2, 0.13);
+        rattle(c, 0, 0.1); rattle(c, 0.16, 0.1);
       },
       right() {
         const c = ac(); if (!c) return;
