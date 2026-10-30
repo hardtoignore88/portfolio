@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "Leave It On Read",
+  "short_name": "On Read",
+  "description": "A swipe game starring Jamie from Absolutely Scunnered. Reply to the messages that matter, leave the rest on read.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#009BD6",
+  "theme_color": "#009BD6",
+  "categories": ["games", "entertainment"],
+  "lang": "en-GB",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
