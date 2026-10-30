@@ -1,6 +1,6 @@
 // Offline support for Leave It On Read.
 // Bump VERSION whenever any file below changes so players get the update.
-const VERSION = 'lior-v4';
+const VERSION = 'lior-v5';
 const FONT_CACHE = 'lior-fonts';
 const SHELL = [
   './',
@@ -60,7 +60,17 @@ self.addEventListener('fetch', (event) => {
 
   if (url.origin !== self.location.origin) return;
 
-  // Game files: cache first, fall back to the network.
+  // Pages: network first so updates show straight away; the saved copy covers offline.
+  if (req.mode === 'navigate') {
+    event.respondWith(
+      fetch(req)
+        .then((res) => { const copy = res.clone(); caches.open(VERSION).then((c) => c.put(req, copy)); return res; })
+        .catch(() => caches.match(req, { ignoreSearch: true }))
+    );
+    return;
+  }
+
+  // Images, icons and other game files: cache first, fall back to the network.
   event.respondWith(
     caches.match(req, { ignoreSearch: true }).then((hit) => hit || fetch(req))
   );
