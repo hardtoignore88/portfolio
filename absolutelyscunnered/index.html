@@ -256,15 +256,11 @@
       <a class="btn-play" href="play/">Play now</a>
     </div>
 
-    <div class="sheet" id="iosSheet" hidden role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+    <div class="sheet" id="installSheet" hidden role="dialog" aria-modal="true" aria-labelledby="installTitle">
       <div class="sheet__card">
-        <h2 id="iosTitle">Add Jamie to your iPhone</h2>
-        <ol>
-          <li>Tap the <b>Share</b> button <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> at the bottom of Safari.</li>
-          <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
-          <li>Tap <b>Add</b>. Jamie’s icon appears on your home screen.</li>
-        </ol>
-        <button class="sheet__close" type="button" id="iosClose">Got it</button>
+        <h2 id="installTitle">Add Jamie to your phone</h2>
+        <ol id="installSteps"></ol>
+        <button class="sheet__close" type="button" id="installClose">Got it</button>
       </div>
     </div>
 
@@ -275,37 +271,65 @@
   </div>
 
   <script>
-    // Install button. Chrome, Edge and Samsung Internet hand us a real install prompt;
-    // iPhones can't be prompted, so the button opens step-by-step instructions instead.
+    // Install button. Where the browser offers its own install prompt (Chrome, Edge,
+    // Samsung Internet) the button uses it. Everywhere else, including iPhones, which
+    // can't be prompted, it opens steps for that browser.
     (() => {
       const buttons = [...document.querySelectorAll('[data-install]')];
       const notes = [...document.querySelectorAll('[data-install-note]')];
-      const sheet = document.getElementById('iosSheet');
-      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const sheet = document.getElementById('installSheet');
+      const ua = navigator.userAgent;
+      const isIOS = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const isAndroid = /android/i.test(ua);
+      const inApp = /FBAN|FBAV|Instagram|Line\/|Snapchat|musical_ly|BytedanceWebview|GSA\/|; wv\)/i.test(ua);
       const installed = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
       let deferred = null;
       const show = (on) => buttons.forEach((b) => { b.hidden = !on; });
       const note = (t) => notes.forEach((n) => { n.textContent = t; });
 
-      if (installed()) { note('You’ve got the app. Tap Play now to start.'); return; }
-      if (isIOS) show(true);
+      const SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>';
+      function steps() {
+        if (inApp) return ['Open this page in your phone’s browser',
+          ['Tap the <b>⋯</b> or <b>⋮</b> menu in this app.', 'Choose <b>Open in browser</b> (or Open in Chrome / Safari).', 'Tap <b>Install app</b> again on the page that opens.']];
+        if (isIOS) return ['Add Jamie to your iPhone',
+          [`Tap the <b>Share</b> button ${SHARE}. It’s at the bottom in Safari, or by the address bar in Chrome.`, 'Scroll down and tap <b>Add to Home Screen</b>.', 'Tap <b>Add</b>. Jamie’s icon appears on your home screen.']];
+        if (/SamsungBrowser/i.test(ua)) return ['Add Jamie to your phone',
+          ['Tap the <b>☰</b> menu at the bottom of the screen.', 'Tap <b>Add page to</b>, then <b>Home screen</b>.', 'Tap <b>Add</b>. Jamie’s icon appears on your home screen.']];
+        if (isAndroid && /Firefox/i.test(ua)) return ['Add Jamie to your phone',
+          ['Tap the <b>⋮</b> menu.', 'Tap <b>Install</b> (or <b>Add to Home screen</b>).', 'Confirm, and Jamie’s icon appears on your home screen.']];
+        if (isAndroid) return ['Add Jamie to your phone',
+          ['Tap the <b>⋮</b> menu at the top right.', 'Tap <b>Install app</b> (or <b>Add to Home screen</b>).', 'Tap <b>Install</b>. Jamie’s icon appears on your home screen.']];
+        if (/Edg\//.test(ua)) return ['Install Jamie on this computer',
+          ['Click the <b>⋯</b> menu at the top right.', 'Choose <b>Apps</b>, then <b>Install this site as an app</b>.']];
+        if (/Chrome\//.test(ua)) return ['Install Jamie on this computer',
+          ['Click the install icon at the right of the address bar, or open the <b>⋮</b> menu.', 'Choose <b>Install</b> (in the menu: <b>Cast, save and share → Install page as app</b>).']];
+        if (/Safari\//.test(ua) && /Macintosh/.test(ua)) return ['Add Jamie to your Dock',
+          ['In Safari’s menu bar, click <b>File</b>.', 'Choose <b>Add to Dock</b>.']];
+        return ['Play it on your phone', ['This browser can’t install apps. Open this page on your phone, or in Chrome or Edge, to install it.']];
+      }
+      function openSheet() {
+        const [title, list] = steps();
+        document.getElementById('installTitle').textContent = title;
+        document.getElementById('installSteps').innerHTML = list.map((li) => `<li>${li}</li>`).join('');
+        sheet.hidden = false;
+        document.getElementById('installClose').focus();
+      }
 
-      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; show(true); });
+      if (installed()) { note('You’ve got the app. Tap Play now to start.'); return; }
+      show(true);
+
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; });
       window.addEventListener('appinstalled', () => { deferred = null; show(false); note('Installed! Look for Jamie on your home screen.'); });
 
       buttons.forEach((b) => b.addEventListener('click', async () => {
-        if (deferred) {
-          deferred.prompt();
-          const { outcome } = await deferred.userChoice;
-          deferred = null;
-          if (outcome !== 'accepted') { show(false); note('No problem. You can install it any time from your browser menu.'); }
-        } else if (isIOS) {
-          sheet.hidden = false;
-          document.getElementById('iosClose').focus();
-        }
+        if (!deferred) return openSheet();
+        const prompt = deferred; deferred = null;   // a prompt can only be shown once
+        prompt.prompt();
+        const { outcome } = await prompt.userChoice;
+        if (outcome !== 'accepted') note('No problem. Tap Install app again any time for the steps.');
       }));
       const close = () => { sheet.hidden = true; };
-      document.getElementById('iosClose').addEventListener('click', close);
+      document.getElementById('installClose').addEventListener('click', close);
       sheet.addEventListener('click', (e) => { if (e.target === sheet) close(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
     })();
