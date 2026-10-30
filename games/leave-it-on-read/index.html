@@ -7,6 +7,15 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Leave It On Read: a swipe game starring Jamie from Absolutely Scunnered by Steven Gladman.">
 <meta name="theme-color" content="#009BD6">
+<!-- pwa -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="On Read">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<!-- /pwa -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
@@ -29,7 +38,7 @@
     color-scheme: light;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; }
+  html, body { height: 100%; margin: 0; overscroll-behavior: none; }
   body {
     background: radial-gradient(120% 80% at 50% 40%, #12B4F0 0%, var(--sky) 45%, var(--sky-deep) 100%) var(--sky);
     color: var(--paper);
@@ -55,6 +64,13 @@
     padding-left: max(16px, env(safe-area-inset-left, 0px));
     padding-right: max(16px, env(safe-area-inset-right, 0px));
     padding-block: 12px;
+  }
+  /* Installed app: content runs under the phone's status bar, so clear it. */
+  @media (display-mode: standalone) {
+    .app {
+      padding-top: max(12px, env(safe-area-inset-top, 0px));
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+    }
   }
   .screen { height: 100%; display: flex; flex-direction: column; }
   .screen[hidden] { display: none !important; }
@@ -719,5 +735,13 @@
   show('title');
 })();
 </script>
+<!-- pwa -->
+<script>
+  // Offline support once installed. Skipped when opened straight from disk.
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
+</script>
+<!-- /pwa -->
 </body>
 </html>
