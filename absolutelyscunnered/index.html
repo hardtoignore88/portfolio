@@ -8,9 +8,13 @@
   <meta name="theme-color" content="#009BD6">
   <meta property="og:title" content="Leave It On Read: an Absolutely Scunnered game">
   <meta property="og:description" content="Jamie's phone won't stop. Reply to the ones that matter, leave the rest on read.">
-  <meta property="og:image" content="https://stevengladman.co.uk/games/leave-it-on-read/icons/icon-512.png">
-  <link rel="icon" href="../games/leave-it-on-read/icons/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="../games/leave-it-on-read/icons/apple-touch-icon.png">
+  <meta property="og:image" content="https://stevengladman.co.uk/absolutelyscunnered/icons/icon-512.png">
+  <link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="On Read">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
@@ -34,6 +38,7 @@
       color-scheme: light;
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html { scroll-behavior: smooth; }
     body {
       margin: 0;
@@ -88,6 +93,25 @@
     }
     .btn-play:hover { transform: translateY(-2px); box-shadow: 0 8px 0 var(--sky-night), 0 16px 32px rgba(0, 40, 70, .3); }
     .btn-play:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--sky-night), 0 4px 12px rgba(0, 40, 70, .3); }
+    .hero__actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px 16px; margin-top: 8px; }
+    .hero__actions .btn-play { margin-top: 0; }
+    .btn-install {
+      display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+      border: 3px solid var(--paper); border-radius: 999px; background: transparent; color: var(--paper);
+      font-family: var(--font-display); font-size: 22px; font-weight: 800; padding: 9px 26px 6px;
+      transition: background .15s ease, color .15s ease, transform .08s ease;
+    }
+    .btn-install:hover { background: var(--paper); color: var(--sky-deep); }
+    .btn-install:active { transform: scale(.97); }
+    .btn-install svg { width: 22px; height: 22px; margin-top: -3px; }
+    .install-note { margin: 0; min-height: 1.4em; font-size: 15px; font-weight: 600; color: var(--warn); }
+    .sheet { position: fixed; inset: 0; z-index: 20; display: grid; place-items: end center; background: rgba(0, 25, 45, .55); padding: 16px; padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+    .sheet__card { width: 100%; max-width: 420px; background: var(--paper); color: var(--ink); border-radius: 24px; padding: 22px 22px 18px; box-shadow: 0 20px 40px rgba(0, 30, 60, .35); animation: rise .25s ease; }
+    .sheet__card h2 { margin: 0 0 12px; font-family: var(--font-display); font-weight: 800; font-size: 24px; line-height: 1.1; color: var(--sky-deep); }
+    .sheet__card ol { margin: 0 0 16px; padding-left: 22px; display: grid; gap: 10px; line-height: 1.45; }
+    .sheet__card ol svg { width: 18px; height: 18px; vertical-align: -3px; color: #2E8BFF; }
+    .sheet__close { width: 100%; border: 0; border-radius: 999px; background: var(--sky); color: var(--paper); font-family: var(--font-display); font-weight: 800; font-size: 19px; padding: 10px 0 7px; cursor: pointer; }
+    @keyframes rise { from { transform: translateY(30px); opacity: 0; } }
     .hero__small { margin: 4px 0 0; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; opacity: .8; }
 
     /* ---------- Sections ---------- */
@@ -152,15 +176,22 @@
     </nav>
 
     <header class="hero">
-      <img class="hero__logo" src="../games/leave-it-on-read/img/logo.png" width="689" height="300" alt="Absolutely Scunnered, created by Steven Gladman">
+      <img class="hero__logo" src="img/logo.png" width="689" height="300" alt="Absolutely Scunnered, created by Steven Gladman">
       <h1 class="hero__game">Leave It On Read</h1>
       <div class="hero__fig">
-        <img class="hero__body" src="../games/leave-it-on-read/img/front.png" width="520" height="1519" alt="Jamie, the star of Absolutely Scunnered, standing with a flat, unimpressed look">
-        <img class="hero__blink" id="blink" src="../games/leave-it-on-read/img/front-blink.png" width="227" height="112" alt="" aria-hidden="true">
+        <img class="hero__body" src="img/front.png" width="520" height="1519" alt="Jamie, the star of Absolutely Scunnered, standing with a flat, unimpressed look">
+        <img class="hero__blink" id="blink" src="img/front-blink.png" width="227" height="112" alt="" aria-hidden="true">
         <span class="hero__phone" aria-hidden="true">u up? 👀</span>
       </div>
       <p class="hero__lead">Jamie’s phone won’t stop. <b>Reply to the ones that matter</b>, leave the rest on read, and try to stop him getting absolutely scunnered.</p>
-      <a class="btn-play" href="../games/leave-it-on-read/">Play now</a>
+      <div class="hero__actions">
+        <a class="btn-play" href="play/">Play now</a>
+        <button class="btn-install" type="button" data-install hidden>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+          <span>Install app</span>
+        </button>
+      </div>
+      <p class="install-note" data-install-note aria-live="polite"></p>
       <p class="hero__small">Free · Plays in your browser · Best on a phone</p>
     </header>
 
@@ -190,11 +221,11 @@
         <article class="step">
           <h3>Watch the scunner meter</h3>
           <div class="faces" aria-hidden="true">
-            <img src="../games/leave-it-on-read/img/unimpressed.png" width="360" height="476" alt="">
-            <img src="../games/leave-it-on-read/img/sideeye.png" width="360" height="476" alt="">
-            <img src="../games/leave-it-on-read/img/eyeroll.png" width="360" height="476" alt="">
-            <img src="../games/leave-it-on-read/img/sceptical.png" width="360" height="476" alt="">
-            <img src="../games/leave-it-on-read/img/angry.png" width="346" height="479" alt="">
+            <img src="img/unimpressed.png" width="360" height="476" alt="">
+            <img src="img/sideeye.png" width="360" height="476" alt="">
+            <img src="img/eyeroll.png" width="360" height="476" alt="">
+            <img src="img/sceptical.png" width="360" height="476" alt="">
+            <img src="img/angry.png" width="346" height="479" alt="">
           </div>
           <div class="meter" aria-hidden="true"></div>
           <p>Wrong calls and slow thumbs wind Jamie up. Fill the meter and he loses it.</p>
@@ -204,10 +235,15 @@
 
     <section class="section" aria-label="Install on your phone">
       <div class="install">
-        <img class="install__icon" src="../games/leave-it-on-read/icons/icon-512.png" width="512" height="512" alt="Leave It On Read app icon showing Jamie">
+        <img class="install__icon" src="icons/icon-512.png" width="512" height="512" alt="Leave It On Read app icon showing Jamie">
         <div>
           <h2>Put Jamie on your home screen</h2>
           <p>Install it like an app. It opens full screen and works offline after the first play.</p>
+          <p class="install-note" data-install-note aria-live="polite"></p>
+          <button class="btn-install" type="button" data-install hidden style="margin-bottom:14px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>
+            <span>Install app</span>
+          </button>
           <ul>
             <li><b>Android:</b> open the game in Chrome, tap ⋮, then Install app.</li>
             <li><b>iPhone:</b> open the game in Safari, tap Share, then Add to Home Screen.</li>
@@ -217,7 +253,19 @@
     </section>
 
     <div class="cta">
-      <a class="btn-play" href="../games/leave-it-on-read/">Play now</a>
+      <a class="btn-play" href="play/">Play now</a>
+    </div>
+
+    <div class="sheet" id="iosSheet" hidden role="dialog" aria-modal="true" aria-labelledby="iosTitle">
+      <div class="sheet__card">
+        <h2 id="iosTitle">Add Jamie to your iPhone</h2>
+        <ol>
+          <li>Tap the <b>Share</b> button <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M8 7l4-4 4 4"/><path d="M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg> at the bottom of Safari.</li>
+          <li>Scroll down and tap <b>Add to Home Screen</b>.</li>
+          <li>Tap <b>Add</b>. Jamie’s icon appears on your home screen.</li>
+        </ol>
+        <button class="sheet__close" type="button" id="iosClose">Got it</button>
+      </div>
     </div>
 
     <footer class="footer">
@@ -226,6 +274,46 @@
     </footer>
   </div>
 
+  <script>
+    // Install button. Chrome, Edge and Samsung Internet hand us a real install prompt;
+    // iPhones can't be prompted, so the button opens step-by-step instructions instead.
+    (() => {
+      const buttons = [...document.querySelectorAll('[data-install]')];
+      const notes = [...document.querySelectorAll('[data-install-note]')];
+      const sheet = document.getElementById('iosSheet');
+      const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const installed = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+      let deferred = null;
+      const show = (on) => buttons.forEach((b) => { b.hidden = !on; });
+      const note = (t) => notes.forEach((n) => { n.textContent = t; });
+
+      if (installed()) { note('You’ve got the app. Tap Play now to start.'); return; }
+      if (isIOS) show(true);
+
+      window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; show(true); });
+      window.addEventListener('appinstalled', () => { deferred = null; show(false); note('Installed! Look for Jamie on your home screen.'); });
+
+      buttons.forEach((b) => b.addEventListener('click', async () => {
+        if (deferred) {
+          deferred.prompt();
+          const { outcome } = await deferred.userChoice;
+          deferred = null;
+          if (outcome !== 'accepted') { show(false); note('No problem. You can install it any time from your browser menu.'); }
+        } else if (isIOS) {
+          sheet.hidden = false;
+          document.getElementById('iosClose').focus();
+        }
+      }));
+      const close = () => { sheet.hidden = true; };
+      document.getElementById('iosClose').addEventListener('click', close);
+      sheet.addEventListener('click', (e) => { if (e.target === sheet) close(); });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+    })();
+
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    }
+  </script>
   <script>
     // Jamie blinks every few seconds, now and then twice.
     (() => {

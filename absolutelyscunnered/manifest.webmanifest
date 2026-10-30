@@ -1,9 +1,9 @@
 {
-  "id": "./",
+  "id": "./play/",
   "name": "Leave It On Read",
   "short_name": "On Read",
   "description": "A swipe game starring Jamie from Absolutely Scunnered. Reply to the messages that matter, leave the rest on read.",
-  "start_url": "./",
+  "start_url": "./play/",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
