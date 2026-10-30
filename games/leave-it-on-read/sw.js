@@ -1,6 +1,6 @@
 // Offline support for Leave It On Read.
 // Bump VERSION whenever any file below changes so players get the update.
-const VERSION = 'lior-v2';
+const VERSION = 'lior-v3';
 const FONT_CACHE = 'lior-fonts';
 const SHELL = [
   './',
@@ -9,6 +9,7 @@ const SHELL = [
   'img/logo.png',
   'img/logo-wordmark.png',
   'img/front.png',
+  'img/front-blink.png',
   'img/unimpressed.png',
   'img/sideeye.png',
   'img/eyeroll.png',
