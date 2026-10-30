@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leave It On Read</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Leave It On Read: a swipe game starring Jamie from Absolutely Scunnered by Steven Gladman.">
+<meta name="theme-color" content="#009BD6">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&display=swap">
+<style>
+  /* Layout: one portrait screen. Score + scunner meter on top, Jamie in the middle reacting,
+     the incoming message card under him, swipe/tap controls at the bottom. Single brand look
+     (the show's title-card blue), deliberately not theme-switched. */
+  :root {
+    --sky: #009BD6;        /* logo background */
+    --sky-deep: #0079AE;
+    --ink: #10263A;        /* text on white */
+    --paper: #FFFFFF;
+    --teal: #56BBB3;       /* Jamie's hoodie */
+    --denim: #4C6897;      /* Jamie's jeans */
+    --hair: #9A4241;       /* Jamie's hair, used for "angry" */
+    --muted: #5E7487;
+    --ok: #1F9D6B;
+    --font-display: "Baloo 2", "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+    --font-text: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(120% 80% at 50% 40%, #12B4F0 0%, var(--sky) 45%, var(--sky-deep) 100%) var(--sky);
+    color: var(--paper);
+    font-family: var(--font-display);
+    overflow: hidden;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  img { max-width: 100%; -webkit-user-drag: none; }
+  button { font: inherit; color: inherit; }
+  button:focus-visible { outline: 3px solid var(--paper); outline-offset: 3px; }
+
+  .skyline {
+    position: fixed; inset: auto 0 0 0; height: 34vh; width: 100%;
+    opacity: .13; pointer-events: none; z-index: 0;
+  }
+
+  .app {
+    position: relative; z-index: 1;
+    height: 100%; max-width: 460px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 12px;
+  }
+  .screen { height: 100%; display: flex; flex-direction: column; }
+  .screen[hidden] { display: none !important; }
+
+  /* ---------- Title ---------- */
+  .title { align-items: center; justify-content: space-between; text-align: center; gap: 10px; }
+  .title__logo { width: min(78%, 330px); margin-top: 2vh; filter: drop-shadow(0 4px 0 rgba(0, 60, 100, .35)); }
+  .title__game {
+    margin: 0; font-size: clamp(30px, 9vw, 40px); line-height: 1; font-weight: 800;
+    letter-spacing: .01em; text-shadow: 0 3px 0 rgba(0, 60, 100, .35); text-wrap: balance;
+  }
+  .title__jamie { flex: 1 1 auto; min-height: 0; display: flex; align-items: flex-end; justify-content: center; position: relative; }
+  .title__jamie img { max-height: 100%; height: 40vh; width: auto; }
+  .title__fig { position: relative; height: 100%; max-height: 40vh; display: flex; align-items: flex-end; }
+  .title__phone {
+    position: absolute; left: 72%; top: 1%; white-space: nowrap;
+    background: var(--paper); color: var(--ink); border-radius: 16px 16px 16px 4px;
+    padding: 6px 12px; font-family: var(--font-text); font-size: 14px; font-weight: 600;
+    box-shadow: 0 6px 18px rgba(0, 40, 70, .25); animation: buzz 2.4s ease-in-out infinite;
+  }
+  .title__how { margin: 0; max-width: 34ch; font-family: var(--font-text); font-size: 15px; line-height: 1.45; color: #EAF8FF; text-wrap: pretty; }
+  .title__how b { color: var(--paper); }
+  .title__best { margin: 0; font-size: 15px; opacity: .85; font-variant-numeric: tabular-nums; }
+  .btn-play {
+    border: 0; border-radius: 999px; background: var(--paper); color: var(--sky-deep);
+    font-size: 24px; font-weight: 800; padding: 10px 44px 8px; cursor: pointer;
+    box-shadow: 0 5px 0 #00577D, 0 10px 24px rgba(0, 40, 70, .3);
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  .btn-play:active { transform: translateY(4px); box-shadow: 0 1px 0 #00577D, 0 4px 12px rgba(0, 40, 70, .3); }
+  .credit { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+
+  /* ---------- Game HUD ---------- */
+  .game { gap: 10px; }
+  .hud { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 12px; }
+  .hud__score { font-size: 30px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; text-shadow: 0 2px 0 rgba(0, 60, 100, .35); }
+  .hud__streak { font-size: 15px; font-weight: 800; background: var(--paper); color: var(--sky-deep); border-radius: 999px; padding: 2px 10px 0; transition: transform .15s ease; }
+  .hud__streak[data-on="0"] { opacity: 0; }
+  .meter { grid-column: 1 / -1; }
+  .meter__label { display: flex; justify-content: space-between; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; opacity: .9; }
+  .meter__track { height: 14px; border-radius: 999px; background: rgba(0, 50, 85, .35); overflow: hidden; box-shadow: inset 0 2px 3px rgba(0, 30, 60, .3); }
+  .meter__fill {
+    height: 100%; width: 0%; border-radius: inherit;
+    background: linear-gradient(90deg, var(--teal), #F2C14E 55%, #E0623F 80%, var(--hair));
+    background-size: 460px 100%; transition: width .35s cubic-bezier(.3, 1.4, .5, 1);
+  }
+  .meter.is-hot .meter__track { animation: shake .35s linear infinite; }
+
+  /* ---------- Stage: Jamie + card ---------- */
+  .stage { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .jamie { position: relative; height: clamp(120px, 23vh, 200px); aspect-ratio: 135 / 180; flex: none; z-index: 3; margin-bottom: -10px; }
+  .jamie img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: bottom center; }
+  .jamie.is-jolt { animation: jolt .4s ease; }
+  .bubble {
+    position: absolute; left: 92%; top: 8%; white-space: nowrap;
+    background: var(--paper); color: var(--ink); font-family: var(--font-text); font-weight: 600; font-size: 15px;
+    padding: 6px 12px; border-radius: 16px 16px 16px 4px; box-shadow: 0 6px 16px rgba(0, 40, 70, .25);
+    opacity: 0; transform: scale(.6); transform-origin: 0 100%; transition: opacity .15s ease, transform .2s cubic-bezier(.3, 1.6, .5, 1);
+  }
+  .bubble.is-on { opacity: 1; transform: scale(1); }
+  .bubble--sent { background: #2E8BFF; color: var(--paper); }
+  .bubble--zzz { background: transparent; box-shadow: none; color: var(--paper); font-family: var(--font-display); font-size: 24px; font-weight: 800; }
+
+  .deck { position: relative; width: 100%; flex: none; height: clamp(180px, 30vh, 260px); }
+  .card, .card-ghost {
+    position: absolute; left: 0; right: 0; top: 0; margin: 0 auto; width: 100%;
+    background: var(--paper); color: var(--ink); border-radius: 24px;
+    box-shadow: 0 14px 30px rgba(0, 40, 70, .28);
+  }
+  .card-ghost { height: 100%; transform: translateY(12px) scale(.94); opacity: .55; }
+  .card {
+    height: 100%; display: flex; flex-direction: column; padding: 18px 18px 0;
+    font-family: var(--font-text); touch-action: none; cursor: grab; overflow: hidden;
+    will-change: transform;
+  }
+  .card.is-in { animation: cardIn .28s cubic-bezier(.2, 1.3, .5, 1); }
+  .card.is-dragging { cursor: grabbing; }
+  .card__head { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center;
+    font-family: var(--font-display); font-weight: 800; font-size: 19px; color: var(--paper); padding-top: 3px;
+  }
+  .card__who { min-width: 0; }
+  .card__name { font-weight: 700; font-size: 17px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card__meta { font-size: 13px; color: var(--muted); }
+  .card__text {
+    flex: 1 1 auto; min-height: 0; margin: 14px 0 0; font-size: clamp(18px, 5.2vw, 22px); line-height: 1.35;
+    overflow-wrap: anywhere; text-wrap: pretty; overflow: hidden;
+  }
+  .card__timer { height: 6px; margin: 0 -18px; background: #E5EEF4; flex: none; }
+  .card__timer span { display: block; height: 100%; width: 100%; background: var(--sky); transform-origin: 0 50%; }
+  .card__timer.is-low span { background: #E0623F; }
+  .stamp {
+    position: absolute; top: 22px; padding: 4px 10px 0; border: 3px solid; border-radius: 10px;
+    font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: .04em; text-transform: uppercase;
+    opacity: 0; pointer-events: none; background: rgba(255, 255, 255, .9);
+  }
+  .stamp--read { right: 16px; color: var(--muted); transform: rotate(8deg); }
+  .stamp--reply { left: 16px; color: var(--ok); transform: rotate(-8deg); }
+
+  .toast {
+    min-height: 3.2em; margin: 14px 0 0; max-width: 34ch; text-align: center;
+    font-family: var(--font-text); font-size: 15px; line-height: 1.4; font-weight: 600; color: var(--paper);
+    text-wrap: balance; transition: opacity .2s ease;
+  }
+  .toast.is-bad { color: #FFE3A3; }
+
+  .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .ctl {
+    border: 0; border-radius: 18px; padding: 12px 8px 9px; cursor: pointer;
+    font-size: 18px; font-weight: 800; line-height: 1.1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    transition: transform .08s ease;
+  }
+  .ctl:active { transform: scale(.96); }
+  .ctl small { font-family: var(--font-text); font-size: 12px; font-weight: 600; opacity: .8; }
+  .ctl--read { background: rgba(0, 50, 85, .4); color: var(--paper); }
+  .ctl--reply { background: var(--paper); color: var(--sky-deep); }
+
+  /* ---------- Game over ---------- */
+  .over { align-items: center; justify-content: center; text-align: center; gap: 14px; }
+  .over__face { height: 26vh; max-height: 200px; width: auto; animation: rant .5s ease-in-out infinite alternate; }
+  .over__title { margin: 0; font-size: clamp(32px, 10vw, 44px); line-height: .95; font-weight: 800; text-shadow: 0 3px 0 rgba(0, 60, 100, .35); text-wrap: balance; }
+  .over__why { margin: 0; max-width: 32ch; font-family: var(--font-text); font-size: 15px; line-height: 1.45; color: #FFE3A3; font-weight: 600; text-wrap: balance; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 360px; margin: 6px 0; }
+  .stat { background: rgba(0, 50, 85, .3); border-radius: 16px; padding: 10px 6px 8px; }
+  .stat b { display: block; font-size: 28px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .85; }
+  .over__new { margin: 0; font-size: 18px; font-weight: 800; color: #FFE3A3; }
+
+  @keyframes cardIn { from { transform: translateY(40px) scale(.9); opacity: 0; } }
+  @keyframes jolt { 0%, 100% { transform: none; } 30% { transform: translateY(-10px) rotate(-3deg); } 60% { transform: translateY(2px) rotate(2deg); } }
+  @keyframes shake { 0%, 100% { transform: none; } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+  @keyframes buzz { 0%, 70%, 100% { transform: none; } 74% { transform: rotate(-5deg); } 78% { transform: rotate(5deg); } 82% { transform: rotate(-4deg); } 86% { transform: rotate(3deg); } }
+  @keyframes rant { from { transform: rotate(-3deg) scale(1); } to { transform: rotate(3deg) scale(1.04); } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  }
+  @media (max-height: 640px) {
+    .title__jamie img { height: 30vh; }
+    .title__how { font-size: 14px; }
+    .deck { height: 170px; }
+    .jamie { height: 110px; }
+    .toast { margin-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<svg class="skyline" viewBox="0 0 400 140" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <path fill="#FFFFFF" d="M0 140V96h18V80h14v16h10V60h20v80zM70 140V88c10-22 34-22 44 0v52zM120 140V70h8V52h6v18h8v70zM150 140V92h30V74h22v66zM210 140V40h6V22h4v18h6v100zM234 140V84h40v56zM280 140V64h12l6-16 6 16h12v76zM324 140V90c8-14 28-14 36 0v50zM366 140V76h34v64z"/>
+</svg>
+
+<main class="app">
+  <!-- Title -->
+  <section class="screen title" id="title">
+    <img class="title__logo" src="img/logo.png" width="689" height="300" alt="Absolutely Scunnered, created by Steven Gladman">
+    <h1 class="title__game">Leave It On Read</h1>
+    <div class="title__jamie">
+      <div class="title__fig">
+        <img src="img/front.png" width="190" height="552" alt="Jamie, standing with a flat, unimpressed look">
+        <span class="title__phone" aria-hidden="true">u up? 👀</span>
+      </div>
+    </div>
+    <p class="title__how">Jamie’s phone won’t stop. <b>Swipe right to reply</b> to the ones that matter. <b>Swipe left to leave the rest on read.</b> Get it wrong, or take too long, and he gets scunnered.</p>
+    <p class="title__best" id="titleBest" hidden></p>
+    <button class="btn-play" id="playBtn" type="button">Play</button>
+    <p class="credit">A game starring Jamie from Absolutely Scunnered</p>
+  </section>
+
+  <!-- Game -->
+  <section class="screen game" id="game" hidden>
+    <div class="hud">
+      <div class="hud__score" id="score" aria-live="polite">0</div>
+      <div class="hud__streak" id="streak" data-on="0">x1</div>
+      <div class="meter" id="meter">
+        <div class="meter__label"><span>Scunner meter</span><span id="meterPct">0%</span></div>
+        <div class="meter__track" role="meter" aria-label="Scunner meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="meterTrack">
+          <div class="meter__fill" id="meterFill"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="jamie" id="jamie">
+        <img id="jamieFace" src="img/unimpressed.png" width="136" height="179" alt="Jamie looks unimpressed">
+        <div class="bubble" id="bubble" aria-live="polite"></div>
+      </div>
+      <div class="deck" id="deck">
+        <div class="card-ghost" aria-hidden="true"></div>
+      </div>
+      <p class="toast" id="toast" aria-live="polite"></p>
+    </div>
+
+    <div class="controls">
+      <button class="ctl ctl--read" id="btnRead" type="button">← Leave on read<small>Swipe left</small></button>
+      <button class="ctl ctl--reply" id="btnReply" type="button">Reply →<small>Swipe right</small></button>
+    </div>
+  </section>
+
+  <!-- Game over -->
+  <section class="screen over" id="over" hidden>
+    <img class="over__face" src="img/angry.png" width="131" height="181" alt="Jamie, mid angry rant">
+    <h2 class="over__title">Absolutely scunnered.</h2>
+    <p class="over__why" id="overWhy"></p>
+    <div class="stats">
+      <div class="stat"><b id="stScore">0</b><span>Score</span></div>
+      <div class="stat"><b id="stHandled">0</b><span>Handled</span></div>
+      <div class="stat"><b id="stBest">0</b><span>Best</span></div>
+    </div>
+    <p class="over__new" id="overNew" hidden>New best score!</p>
+    <button class="btn-play" id="againBtn" type="button">Go again</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  // ---------- Content ----------
+  // ans: "reply" = it matters, "read" = leave it on read.
+  // bad: what happens when Jamie gets it wrong. say: what Jamie sends back when he replies.
+  const P = {
+    mum:    { name: 'Mum', av: 'M', col: '#D9577A' },
+    gran:   { name: 'Gran', av: 'G', col: '#8D6CC8' },
+    boss:   { name: 'Lorraine (Work)', av: 'L', col: '#384F73' },
+    kev:    { name: 'Kev', av: 'K', col: '#E08A2E' },
+    kirsty: { name: 'Kirsty (sister)', av: 'K', col: '#2FA38F' },
+    court:  { name: 'Courier', av: '📦', col: '#6A7B8C' },
+    dent:   { name: 'Smile Dental', av: '🦷', col: '#3FA7D6' },
+    land:   { name: 'Landlord', av: '🏠', col: '#7A6A58' },
+    unk:    { name: '+44 7700 900461', av: '?', col: '#9AA7B3' },
+    lads:   { name: 'Lads 🍻 (14)', av: '👥', col: '#5B6BD6' },
+    fam:    { name: 'Family Chat (Uncle Davie)', av: '👥', col: '#C25B47' },
+    ex:     { name: 'Caitlin', av: 'C', col: '#B04C8F' },
+    gym:    { name: 'FitZone', av: '💪', col: '#E05555' },
+    pizza:  { name: 'Pizza Palace', av: '🍕', col: '#D9822B' },
+    gary:   { name: 'Gary (school)', av: 'G', col: '#5A9E4B' },
+    survey: { name: 'Feedback Team', av: '★', col: '#9AA7B3' },
+    bank:   { name: 'Your Bank', av: '£', col: '#2E6F9E' },
+  };
+  const DECK = [
+    // Reply to these
+    { p: 'mum', text: 'Are you coming for your tea on Sunday? Yes or no.', ans: 'reply', say: 'Aye 👍', bad: 'Mum has phoned Gran to ask if you’re still alive.' },
+    { p: 'mum', text: 'Did you get home OK?', ans: 'reply', say: 'Yes Mum', bad: 'Mum is now phoning round the hospitals.' },
+    { p: 'mum', text: 'Your dad wants to know how to get the telly back on.', ans: 'reply', say: 'Press Source', bad: 'Your dad has unplugged everything. It’s worse now.' },
+    { p: 'gran', text: 'HELLO JAMIE IT IS GRAN. HOW DO I TURN THE CAPITALS OFF', ans: 'reply', say: 'Caps lock Gran x', bad: 'Gran’s telling the whole church you’ve stopped speaking to her.' },
+    { p: 'gran', text: 'I’ve put a fiver in a card for you. Are you coming round?', ans: 'reply', say: 'Tomorrow Gran x', bad: 'The fiver has gone to your cousin Ross.' },
+    { p: 'boss', text: 'Can you cover Saturday? Just say if not.', ans: 'reply', say: 'Can’t, sorry', bad: 'You didn’t say no, so Lorraine put you down for Saturday.' },
+    { p: 'boss', text: 'Need those figures before 9. Can you send them?', ans: 'reply', say: 'Sending now', bad: 'Your name came up in a meeting. Not in a good way.' },
+    { p: 'court', text: 'I’m outside. Is anyone in?', ans: 'reply', say: 'Coming now!', bad: 'Your parcel has been left “in a safe place”. It’s the wheelie bin.' },
+    { p: 'dent', text: 'Reply Y to confirm your appointment tomorrow at 8:40.', ans: 'reply', say: 'Y', bad: 'Appointment cancelled. The next one is in March.' },
+    { p: 'land', text: 'Boiler engineer is coming Thursday. OK to let him in?', ans: 'reply', say: 'Yes, that’s fine', bad: 'No hot water until the end of the month.' },
+    { p: 'kev', text: 'Found your wallet in my car', ans: 'reply', say: 'LEGEND', bad: 'Kev has spent the contents of your wallet on a kebab.' },
+    { p: 'kev', text: 'I’m outside the cinema, where are you??', ans: 'reply', say: '2 mins', bad: 'Kev went in without you. He’s texting you spoilers.' },
+    { p: 'kirsty', text: 'It’s Dad’s birthday tomorrow. You chipping in for the present?', ans: 'reply', say: 'Aye, put me down', bad: 'The card now says “Love from Kirsty”. Just Kirsty.' },
+    { p: 'kirsty', text: 'Can you pick me up from the station? I’m soaked.', ans: 'reply', say: 'On my way', bad: 'Kirsty walked home in the rain. Mum knows.' },
+    // Leave these on read
+    { p: 'unk', text: 'Hey! Is this still Dave’s number?', ans: 'read', bad: 'You’re now three hours into a chat with a stranger looking for Dave.' },
+    { p: 'unk', text: 'Your parcel couldn’t be delivered. Pay £1.45 here: parcel-redelivery.biz', ans: 'read', bad: 'That was a scam. Your bank card is now on holiday without you.' },
+    { p: 'unk', text: 'u up?', ans: 'read', bad: 'You replied “who’s this”. It’s been going for an hour.' },
+    { p: 'lads', text: 'WHO’S OUT TONIGHT 🍻🍻🍻', ans: 'read', bad: 'You’re out tonight. It’s a Tuesday.' },
+    { p: 'lads', text: 'Kev: someone settle this. Is a Jaffa Cake a cake or a biscuit', ans: 'read', bad: 'The debate is now on day three. Nobody has changed their mind.' },
+    { p: 'fam', text: '[Forwarded many times] Share this with 10 people or bad luck for 7 years', ans: 'read', bad: 'You’re in an argument with Uncle Davie. Everyone else has muted the chat.' },
+    { p: 'ex', text: 'hey stranger 👀', ans: 'read', bad: 'You replied. Kev has screenshotted it for the group.' },
+    { p: 'kev', text: 'Lend us a tenner? Pay you back Friday', ans: 'read', bad: 'Friday never comes. Kev knows this.' },
+    { p: 'kev', text: 'Have you seen this video?? 😂😂', ans: 'read', bad: 'It was a 40-minute video about crypto.' },
+    { p: 'kirsty', text: 'Wordle 2/6 🟩🟩🟩🟩🟩 beat that', ans: 'read', bad: 'Now she wants your score. It was 6.' },
+    { p: 'gym', text: 'We miss you! Come back for 50% off your first month 💪', ans: 'read', bad: 'You’ve rejoined the gym. Again.' },
+    { p: 'pizza', text: '2 for 1 Tuesdays are back! Reply STOP to opt out', ans: 'read', bad: 'You replied STOP. They’ve signed you up for Wednesdays as well.' },
+    { p: 'gary', text: 'Jamie!! Long time! Got a wee business opportunity for you 💸', ans: 'read', bad: 'You’re now a “brand ambassador” for protein coffee.' },
+    { p: 'survey', text: 'How did we do? Rate your experience from 1 to 10.', ans: 'read', bad: 'There were 47 more questions.' },
+    { p: 'bank', text: 'We’ve received your payment. No need to reply.', ans: 'read', bad: 'You replied “thanks”. A robot replied back. Now you’re friends.' },
+  ];
+  const SHRUGS = ['Nope.', 'Not today.', 'Seen it.', 'Mm-hm.', 'No chance.', 'Later. Maybe.'];
+
+  // ---------- Tuning ----------
+  const T_START = 6.0, T_MIN = 2.3, T_STEP = 0.13;   // seconds per card
+  const HIT_WRONG = 24, HIT_SLOW = 18, CALM = 4;      // meter changes (0-100)
+  const FACES = [[0, 'unimpressed'], [25, 'sideeye'], [45, 'eyeroll'], [65, 'sceptical'], [85, 'angry']];
+  const ALT = { unimpressed: 'unimpressed', sideeye: 'giving it the side-eye', eyeroll: 'rolling his eyes', sceptical: 'sceptical', angry: 'raging', shocked: 'shocked awake', asleep: 'asleep', blank: 'staring blankly', ooh: 'intrigued' };
+
+  // ---------- Elements ----------
+  const $ = (id) => document.getElementById(id);
+  const scr = { title: $('title'), game: $('game'), over: $('over') };
+  const el = {
+    score: $('score'), streak: $('streak'), meter: $('meter'), meterFill: $('meterFill'), meterPct: $('meterPct'), meterTrack: $('meterTrack'),
+    jamie: $('jamie'), face: $('jamieFace'), bubble: $('bubble'), deck: $('deck'), toast: $('toast'),
+  };
+
+  // Preload faces so swaps don't flicker.
+  Object.keys(ALT).forEach((k) => { const i = new Image(); i.src = `img/${k}.png`; });
+
+  const store = {
+    get() { try { return Number(localStorage.getItem('lior-best')) || 0; } catch (e) { return 0; } },
+    set(v) { try { localStorage.setItem('lior-best', String(v)); } catch (e) { /* storage unavailable */ } },
+  };
+
+  let S = null;          // game state
+  let card = null;       // current card element + data
+  let raf = 0, faceTimer = 0, bubbleTimer = 0, toastTimer = 0;
+
+  function show(name) {
+    Object.entries(scr).forEach(([k, s]) => { s.hidden = k !== name; });
+  }
+
+  function showBest() {
+    const b = store.get();
+    $('titleBest').hidden = !b;
+    $('titleBest').textContent = `Best score: ${b}`;
+  }
+
+  // ---------- Deck ----------
+  function shuffled() {
+    const a = DECK.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function nextMsg() {
+    if (!S.queue.length) {
+      S.queue = shuffled();
+      if (S.queue[0] === S.last) S.queue.push(S.queue.shift());
+    }
+    return (S.last = S.queue.shift());
+  }
+
+  // ---------- Jamie ----------
+  function moodFace() {
+    let f = 'unimpressed';
+    for (const [t, n] of FACES) if (S.meter >= t) f = n;
+    return f;
+  }
+  function setFace(name) {
+    el.face.src = `img/${name}.png`;
+    el.face.alt = `Jamie looks ${ALT[name]}`;
+  }
+  function flashFace(name, ms) {
+    clearTimeout(faceTimer);
+    setFace(name);
+    faceTimer = setTimeout(() => S && S.on && setFace(moodFace()), ms);
+  }
+  function say(text, kind) {
+    clearTimeout(bubbleTimer);
+    el.bubble.className = 'bubble' + (kind ? ` bubble--${kind}` : '');
+    el.bubble.textContent = text;
+    void el.bubble.offsetWidth;
+    el.bubble.classList.add('is-on');
+    bubbleTimer = setTimeout(() => el.bubble.classList.remove('is-on'), 1100);
+  }
+  function toast(text, bad) {
+    clearTimeout(toastTimer);
+    el.toast.textContent = text;
+    el.toast.classList.toggle('is-bad', !!bad);
+    toastTimer = setTimeout(() => { el.toast.textContent = ''; }, bad ? 2800 : 1200);
+  }
+  function jolt() {
+    el.jamie.classList.remove('is-jolt'); void el.jamie.offsetWidth; el.jamie.classList.add('is-jolt');
+    try { navigator.vibrate && navigator.vibrate(60); } catch (e) { /* no vibration */ }
+  }
+
+  // ---------- HUD ----------
+  function mult() { return Math.min(4, 1 + Math.floor(S.streak / 5)); }
+  function hud() {
+    el.score.textContent = S.score;
+    const m = mult();
+    el.streak.textContent = `x${m}`;
+    el.streak.dataset.on = m > 1 ? '1' : '0';
+    const pct = Math.round(S.meter);
+    el.meterFill.style.width = pct + '%';
+    el.meterPct.textContent = pct + '%';
+    el.meterTrack.setAttribute('aria-valuenow', pct);
+    el.meter.classList.toggle('is-hot', S.meter >= 75);
+  }
+
+  // ---------- Cards ----------
+  function clock() {
+    const d = new Date();
+    return d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+  }
+  function dealCard() {
+    const msg = nextMsg();
+    const who = P[msg.p];
+    const node = document.createElement('article');
+    node.className = 'card is-in';
+    node.setAttribute('aria-label', `Message from ${who.name}`);
+    node.innerHTML = `
+      <div class="card__head">
+        <div class="avatar" style="background:${who.col}"></div>
+        <div class="card__who"><div class="card__name"></div><div class="card__meta">now</div></div>
+      </div>
+      <p class="card__text"></p>
+      <div class="card__timer"><span></span></div>
+      <div class="stamp stamp--read">Read ${clock()}</div>
+      <div class="stamp stamp--reply">Reply</div>`;
+    node.querySelector('.avatar').textContent = who.av;
+    node.querySelector('.card__name').textContent = who.name;
+    node.querySelector('.card__text').textContent = msg.text;
+    el.deck.appendChild(node);
+    const dur = Math.max(T_MIN, T_START - S.handled * T_STEP) * 1000;
+    card = { node, msg, dur, start: performance.now(), done: false, dx: 0 };
+    bindDrag(card);
+    if (S.handled === 0) toast('Swipe the card, or use the buttons.', false);
+    tick();
+  }
+
+  function tick() {
+    cancelAnimationFrame(raf);
+    const step = (now) => {
+      if (!card || card.done || !S.on) return;
+      const left = 1 - (now - card.start) / card.dur;
+      const bar = card.node.querySelector('.card__timer');
+      bar.firstElementChild.style.transform = `scaleX(${Math.max(0, left)})`;
+      bar.classList.toggle('is-low', left < 0.3);
+      if (left <= 0) return resolve(null);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  function fling(c, dir) {
+    const n = c.node;
+    n.style.transition = 'transform .32s ease-in, opacity .32s ease-in';
+    if (dir === 0) {
+      n.style.transform = 'translateY(30px) scale(.85)';
+    } else {
+      n.style.transform = `translateX(${dir * 140}%) rotate(${dir * 24}deg)`;
+      n.querySelector(dir < 0 ? '.stamp--read' : '.stamp--reply').style.opacity = 1;
+    }
+    n.style.opacity = '0';
+    setTimeout(() => n.remove(), 340);
+  }
+
+  // choice: 'reply' | 'read' | null (ran out of time)
+  function resolve(choice) {
+    if (!card || card.done || !S.on) return;
+    card.done = true;
+    cancelAnimationFrame(raf);
+    const { msg } = card;
+    S.handled++;
+    fling(card, choice === 'reply' ? 1 : choice === 'read' ? -1 : 0);
+
+    if (choice === null) {
+      S.meter += HIT_SLOW; S.streak = 0;
+      setFace('asleep'); say('Zzz', 'zzz');
+      clearTimeout(faceTimer);
+      faceTimer = setTimeout(() => { if (S.on) { flashFace('shocked', 650); jolt(); } }, 600);
+      toast(msg.ans === 'reply' ? `Too slow. ${msg.bad}` : 'Too slow. Jamie nodded off.', true);
+      S.lastBad = msg.ans === 'reply' ? msg.bad : 'Jamie fell asleep holding his phone.';
+    } else if (choice === msg.ans) {
+      S.streak++;
+      S.score += 10 * mult();
+      S.meter -= CALM;
+      if (choice === 'reply') say(msg.say, 'sent');
+      else { say(SHRUGS[Math.floor(Math.random() * SHRUGS.length)]); if (Math.random() < .35) flashFace('blank', 500); }
+      if (S.streak > 0 && S.streak % 5 === 0 && mult() > 1) { toast(`Streak! Points x${mult()}`, false); flashFace('ooh', 600); }
+    } else {
+      S.meter += HIT_WRONG; S.streak = 0;
+      flashFace('shocked', 750); jolt();
+      toast(msg.bad, true);
+      S.lastBad = msg.bad;
+      if (choice === 'reply') say('…', 'sent');
+    }
+    S.meter = Math.max(0, Math.min(100, S.meter));
+    hud();
+    if (S.handled % 10 === 0 && S.meter < 100) toast('It’s getting busier…', false);
+    if (S.meter >= 100) return setTimeout(gameOver, 700);
+    setTimeout(() => { if (S.on) dealCard(); }, 260);
+  }
+
+  // ---------- Swipe ----------
+  function bindDrag(c) {
+    const n = c.node;
+    const read = n.querySelector('.stamp--read'), rep = n.querySelector('.stamp--reply');
+    let x0 = 0, t0 = 0, id = null;
+    n.addEventListener('pointerdown', (e) => {
+      if (c.done) return;
+      id = e.pointerId; x0 = e.clientX; t0 = performance.now();
+      n.setPointerCapture(id);
+      n.classList.add('is-dragging');
+      n.classList.remove('is-in');
+      n.style.transition = 'none';
+    });
+    n.addEventListener('pointermove', (e) => {
+      if (e.pointerId !== id || c.done) return;
+      c.dx = e.clientX - x0;
+      n.style.transform = `translateX(${c.dx}px) rotate(${c.dx / 18}deg)`;
+      read.style.opacity = Math.min(1, Math.max(0, -c.dx / 90));
+      rep.style.opacity = Math.min(1, Math.max(0, c.dx / 90));
+    });
+    const end = (e) => {
+      if (e.pointerId !== id) return;
+      id = null;
+      n.classList.remove('is-dragging');
+      if (c.done) return;
+      const v = c.dx / Math.max(1, performance.now() - t0);
+      const w = n.offsetWidth;
+      if (c.dx > w * 0.28 || (v > 0.6 && c.dx > 30)) return resolve('reply');
+      if (c.dx < -w * 0.28 || (v < -0.6 && c.dx < -30)) return resolve('read');
+      n.style.transition = 'transform .25s cubic-bezier(.3, 1.5, .5, 1)';
+      n.style.transform = '';
+      read.style.opacity = rep.style.opacity = 0;
+      c.dx = 0;
+    };
+    n.addEventListener('pointerup', end);
+    n.addEventListener('pointercancel', end);
+  }
+
+  // ---------- Flow ----------
+  function start() {
+    clearTimeout(faceTimer); clearTimeout(toastTimer);
+    el.deck.querySelectorAll('.card').forEach((n) => n.remove());
+    S = { on: true, score: 0, meter: 0, streak: 0, handled: 0, queue: [], last: null, lastBad: '' };
+    show('game');
+    hud();
+    el.toast.textContent = '';
+    setFace('asleep');
+    say('Zzz', 'zzz');
+    setTimeout(() => {
+      if (!S.on) return;
+      setFace('shocked'); jolt(); say('Bzzt bzzt');
+      setTimeout(() => { if (S.on) { setFace(moodFace()); dealCard(); } }, 650);
+    }, 650);
+  }
+
+  function gameOver() {
+    S.on = false;
+    cancelAnimationFrame(raf);
+    const best = store.get();
+    const isNew = S.score > best;
+    if (isNew) store.set(S.score);
+    $('overWhy').textContent = S.lastBad;
+    $('stScore').textContent = S.score;
+    $('stHandled').textContent = S.handled;
+    $('stBest').textContent = Math.max(best, S.score);
+    $('overNew').hidden = !isNew || S.score === 0;
+    show('over');
+  }
+
+  $('playBtn').addEventListener('click', start);
+  $('againBtn').addEventListener('click', start);
+  $('btnRead').addEventListener('click', () => resolve('read'));
+  $('btnReply').addEventListener('click', () => resolve('reply'));
+  document.addEventListener('keydown', (e) => {
+    if (!S || !S.on) return;
+    if (e.key === 'ArrowLeft') { e.preventDefault(); resolve('read'); }
+    if (e.key === 'ArrowRight') { e.preventDefault(); resolve('reply'); }
+  });
+  // Pause the timer when the tab is hidden by restarting the current card's clock on return.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && card && !card.done && S && S.on) { card.start = performance.now(); tick(); }
+  });
+
+  showBest();
+  show('title');
+})();
+</script>
+</body>
+</html>
