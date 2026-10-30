@@ -61,7 +61,7 @@
 
   /* ---------- Title ---------- */
   .title { align-items: center; justify-content: space-between; text-align: center; gap: 10px; }
-  .title__logo { width: min(78%, 330px); margin-top: 2vh; filter: drop-shadow(0 4px 0 rgba(0, 60, 100, .35)); }
+  .title__logo { width: min(78%, 330px); height: auto; margin-top: 2vh; }
   .title__game {
     margin: 0; font-size: clamp(30px, 9vw, 40px); line-height: 1; font-weight: 800;
     letter-spacing: .01em; text-shadow: 0 3px 0 rgba(0, 60, 100, .35); text-wrap: balance;
@@ -213,7 +213,7 @@
     <h1 class="title__game">Leave It On Read</h1>
     <div class="title__jamie">
       <div class="title__fig">
-        <img src="img/front.png" width="190" height="552" alt="Jamie, standing with a flat, unimpressed look">
+        <img src="img/front.png" width="520" height="1503" alt="Jamie, standing with a flat, unimpressed look">
         <span class="title__phone" aria-hidden="true">u up? 👀</span>
       </div>
     </div>
@@ -238,7 +238,7 @@
 
     <div class="stage">
       <div class="jamie" id="jamie">
-        <img id="jamieFace" src="img/unimpressed.png" width="136" height="179" alt="Jamie looks unimpressed">
+        <img id="jamieFace" src="img/unimpressed.png" width="414" height="543" alt="Jamie looks unimpressed">
         <div class="bubble" id="bubble" aria-live="polite"></div>
       </div>
       <div class="deck" id="deck">
@@ -255,7 +255,7 @@
 
   <!-- Game over -->
   <section class="screen over" id="over" hidden>
-    <img class="over__face" src="img/angry.png" width="131" height="181" alt="Jamie, mid angry rant">
+    <img class="over__face" src="img/angry.png" width="398" height="544" alt="Jamie, mid angry rant">
     <h2 class="over__title">Absolutely scunnered.</h2>
     <p class="over__why" id="overWhy"></p>
     <div class="stats">
